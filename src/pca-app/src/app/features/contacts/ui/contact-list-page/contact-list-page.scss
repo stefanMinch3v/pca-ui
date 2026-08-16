@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.actions-col {
+  width: 6rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--p-text-muted-color);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.page-number {
+  color: var(--p-text-muted-color);
+  min-width: 5rem;
+  text-align: center;
+}

@@ -1,0 +1,136 @@
+<div class="page">
+  <h1 class="title">{{ isEditMode ? 'Edit Contact' : 'New Contact' }}</h1>
+
+  @if (loadingContact()) {
+    <p>Loading contact…</p>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" />
+    <a routerLink="/contacts" class="back-link">Back to contacts</a>
+  } @else {
+    <p-card>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="contact-form">
+        <div class="field">
+          <label for="firstName">First name</label>
+          <input
+            pInputText
+            id="firstName"
+            formControlName="firstName"
+            [invalid]="isInvalid('firstName')"
+          />
+          @if (errorMessage('firstName'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="lastName">Last name</label>
+          <input
+            pInputText
+            id="lastName"
+            formControlName="lastName"
+            [invalid]="isInvalid('lastName')"
+          />
+          @if (errorMessage('lastName'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="dateOfBirth">Date of birth</label>
+          <p-datepicker
+            inputId="dateOfBirth"
+            formControlName="dateOfBirth"
+            dateFormat="yy-mm-dd"
+            [showIcon]="true"
+            [maxDate]="maxDateOfBirth"
+            [invalid]="isInvalid('dateOfBirth')"
+          />
+          @if (errorMessage('dateOfBirth'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="phoneNumber">Phone number</label>
+          <input
+            pInputText
+            id="phoneNumber"
+            formControlName="phoneNumber"
+            placeholder="+1234567890"
+            [invalid]="isInvalid('phoneNumber')"
+          />
+          @if (errorMessage('phoneNumber'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="street">Street</label>
+          <input pInputText id="street" formControlName="street" [invalid]="isInvalid('street')" />
+          @if (errorMessage('street'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="city">City</label>
+          <input pInputText id="city" formControlName="city" [invalid]="isInvalid('city')" />
+          @if (errorMessage('city'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="postalCode">Postal code</label>
+          <input
+            pInputText
+            id="postalCode"
+            formControlName="postalCode"
+            [invalid]="isInvalid('postalCode')"
+          />
+          @if (errorMessage('postalCode'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="country">Country</label>
+          <input
+            pInputText
+            id="country"
+            formControlName="country"
+            [invalid]="isInvalid('country')"
+          />
+          @if (errorMessage('country'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="iban">IBAN</label>
+          <input
+            pInputText
+            id="iban"
+            formControlName="iban"
+            placeholder="e.g. DE89370400440532013000"
+            [invalid]="isInvalid('iban')"
+          />
+          @if (errorMessage('iban'); as error) {
+            <small class="field-error">{{ error }}</small>
+          }
+        </div>
+
+        <div class="actions">
+          <p-button
+            label="Cancel"
+            severity="secondary"
+            [outlined]="true"
+            routerLink="/contacts"
+            [disabled]="saving()"
+          />
+          <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" />
+        </div>
+      </form>
+    </p-card>
+  }
+</div>
