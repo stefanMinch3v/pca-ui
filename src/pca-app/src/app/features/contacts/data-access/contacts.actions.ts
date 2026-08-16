@@ -11,6 +11,15 @@ export const ContactsPageActions = createActionGroup({
   events: {
     'Load First Page': emptyProps(),
     'Load Next Page': emptyProps(),
+    'Load Previous Page': emptyProps(),
+    /**
+     * Dispatched when the form page mounts (new or edit), before anything
+     * else - clears any `selectedContact`/`selectedContactError` left over
+     * from a previous visit (e.g. a failed edit) so it can't leak into an
+     * unrelated later visit, such as hiding the "New Contact" form behind
+     * a stale error screen.
+     */
+    'Reset Selected Contact': emptyProps(),
     'Load Contact': props<{ id: string }>(),
     'Create Contact': props<{ input: ContactInput }>(),
     'Update Contact': props<{ id: string; input: ContactInput }>(),
@@ -26,7 +35,7 @@ export const ContactsPageActions = createActionGroup({
 export const ContactsApiActions = createActionGroup({
   source: 'Contacts API',
   events: {
-    'Load Contacts Success': props<{ page: Page<ContactListing> }>(),
+    'Load Contacts Success': props<{ page: Page<ContactListing>; pageIndex: number }>(),
     'Load Contacts Failure': props<{ error: string }>(),
     'Load Contact Success': props<{ contact: ContactDetails }>(),
     'Load Contact Failure': props<{ error: string }>(),
