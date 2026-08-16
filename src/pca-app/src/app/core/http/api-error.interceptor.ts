@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { catchError, throwError } from 'rxjs';
-import { ProblemDetails } from '../models/problem-details.model';
+import { describeHttpError } from './describe-http-error';
 
 /**
  * Surfaces API failures (RFC 9457 ProblemDetails, see
@@ -18,7 +18,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
         messageService.add({
           severity: 'error',
           summary: `Request failed (${error.status})`,
-          detail: describeError(error),
+          detail: describeHttpError(error),
         });
       }
 
@@ -26,12 +26,3 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
     }),
   );
 };
-
-function describeError(error: HttpErrorResponse): string {
-  const problem = error.error as ProblemDetails | null;
-  if (problem?.errors?.length) {
-    return problem.errors.join(' ');
-  }
-
-  return problem?.detail ?? problem?.title ?? error.message;
-}
