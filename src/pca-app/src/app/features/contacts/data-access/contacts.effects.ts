@@ -1,14 +1,15 @@
 import { inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, map, of, switchMap, withLatestFrom } from 'rxjs';
+import { EMPTY, catchError, map, of, switchMap, withLatestFrom } from 'rxjs';
+import { describeHttpError as describeError } from '../../../core/http/describe-http-error';
 import { ContactApiService } from '../../../core/services/contact-api.service';
 import { ContactsApiActions, ContactsPageActions } from './contacts.actions';
-import { selectNextPageKey } from './contacts.reducer';
-
-function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : 'Something went wrong.';
-}
+import {
+  selectCurrentPageIndex,
+  selectNextPageKey,
+  selectPreviousPageKey,
+} from './contacts.reducer';
 
 export const loadFirstPage$ = createEffect(
   (actions$ = inject(Actions), contactApi = inject(ContactApiService)) =>
@@ -16,8 +17,10 @@ export const loadFirstPage$ = createEffect(
       ofType(ContactsPageActions.loadFirstPage),
       switchMap(() =>
         contactApi.getAll(null).pipe(
-          map((page) => ContactsApiActions.loadContactsSuccess({ page })),
-          catchError((error: unknown) => of(ContactsApiActions.loadContactsFailure({ error: describeError(error) }))),
+          map((page) => ContactsApiActions.loadContactsSuccess({ page, pageIndex: 0 })),
+          catchError((error: unknown) =>
+            of(ContactsApiActions.loadContactsFailure({ error: describeError(error) })),
+          ),
         ),
       ),
     ),
@@ -28,15 +31,44 @@ export const loadNextPage$ = createEffect(
   (actions$ = inject(Actions), store = inject(Store), contactApi = inject(ContactApiService)) =>
     actions$.pipe(
       ofType(ContactsPageActions.loadNextPage),
-      withLatestFrom(store.select(selectNextPageKey)),
-      switchMap(([, nextPageKey]) => {
-        if (!nextPageKey) {
-          return of(ContactsApiActions.loadContactsSuccess({ page: { items: [], nextPageKey: null } }));
+      withLatestFrom(store.select(selectNextPageKey), store.select(selectCurrentPageIndex)),
+      switchMap(([, nextPageKey, currentPageIndex]) => {
+        // Mirrors the reducer's own guard - nothing to fetch past the last page.
+        if (nextPageKey === null) {
+          return EMPTY;
         }
 
         return contactApi.getAll(nextPageKey).pipe(
-          map((page) => ContactsApiActions.loadContactsSuccess({ page })),
-          catchError((error: unknown) => of(ContactsApiActions.loadContactsFailure({ error: describeError(error) }))),
+          map((page) =>
+            ContactsApiActions.loadContactsSuccess({ page, pageIndex: currentPageIndex + 1 }),
+          ),
+          catchError((error: unknown) =>
+            of(ContactsApiActions.loadContactsFailure({ error: describeError(error) })),
+          ),
+        );
+      }),
+    ),
+  { functional: true },
+);
+
+export const loadPreviousPage$ = createEffect(
+  (actions$ = inject(Actions), store = inject(Store), contactApi = inject(ContactApiService)) =>
+    actions$.pipe(
+      ofType(ContactsPageActions.loadPreviousPage),
+      withLatestFrom(store.select(selectPreviousPageKey), store.select(selectCurrentPageIndex)),
+      switchMap(([, previousPageKey, currentPageIndex]) => {
+        // Mirrors the reducer's own guard - nothing to go back to from page 0.
+        if (currentPageIndex <= 0) {
+          return EMPTY;
+        }
+
+        return contactApi.getAll(previousPageKey).pipe(
+          map((page) =>
+            ContactsApiActions.loadContactsSuccess({ page, pageIndex: currentPageIndex - 1 }),
+          ),
+          catchError((error: unknown) =>
+            of(ContactsApiActions.loadContactsFailure({ error: describeError(error) })),
+          ),
         );
       }),
     ),
@@ -50,7 +82,9 @@ export const loadContact$ = createEffect(
       switchMap(({ id }) =>
         contactApi.getById(id).pipe(
           map((contact) => ContactsApiActions.loadContactSuccess({ contact })),
-          catchError((error: unknown) => of(ContactsApiActions.loadContactFailure({ error: describeError(error) }))),
+          catchError((error: unknown) =>
+            of(ContactsApiActions.loadContactFailure({ error: describeError(error) })),
+          ),
         ),
       ),
     ),
@@ -109,6 +143,7 @@ export const deleteContact$ = createEffect(
 export const contactsEffects = {
   loadFirstPage$,
   loadNextPage$,
+  loadPreviousPage$,
   loadContact$,
   createContact$,
   updateContact$,
